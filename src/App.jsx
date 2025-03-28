@@ -1,55 +1,88 @@
 import { useState, useEffect } from "react"
-function Card({ scData }) {
-  return (
-      <>
-      {scData.map((item)=>(
-    <div key ={item._id} className="flex items-center justify-between border-b border-gray-300 p-6 pb-5 bg-white">
-      <div className="w-16 h-16 ">
-        <img
-          src={`https://assets.smallcase.com/images/smallcases/160/${item.scid}.png`}
-          alt={item.info.name}
-          className="w-full h-full object-contain"
-        />
-      </div>
+import Card from "./components/Card"
 
-      <div className="flex flex-col flex-1 px-4">
-        <h2 className="text-lg font-semibold text-gray-900">{item.info.name}</h2>
-        <p className="text-sm text-gray-600">{item.info.shortDescription}</p>
-        <p className="text-xs text-gray-500">by {item.info.publisherName}</p>
-      </div>
-      <div className="flex items-center gap-6">
-        <div className="text-center">
-          <p className="text-sm text-gray-500">Min. Amount</p>
-          <p className="text-md font-semibold text-gray-900">
-            ₹{item.stats.minInvestAmount.toLocaleString()}
-          </p>
-        </div>
-        <div className="text-center">
-          <p className="text-sm text-gray-500">{item.stats.ratios.cagrDuration} CAGR</p>
-          <p className="text-md font-semibold text-green-600">
-            {(item.stats.ratios.cagr * 100).toFixed(2)}%
-          </p>
-        </div>
-
-        <div className="flex items-center space-x-2">
-
-  <div >Icon</div>
+const AmountFilter = ({ label, maxAmount, scData, setFilteredData }) => {
+  const handleFilter = () => {
+    if (label === "All") {
   
-  <div className=" text-sm border border-md border-gray-300 px-3 py-1">{item.stats.ratios.riskLabel}</div>  
-  </div>
-      </div>
+      setFilteredData(scData);
+    } else {
+      setFilteredData(scData.filter(ele => ele && ele.stats.minInvestAmount <= maxAmount));
+    }
+  };
+  return (
+    <div className="form-control">
+      <label className="label cursor-pointer">
+        <input
+          type="radio"
+          name="amount"
+          onClick={handleFilter}
+          className="radio checked:bg-blue-500"
+          value={maxAmount}
+        />
+        <span className="label-text ml-2">{label}</span>
+      </label>
     </div>
-    
-  ))}
-   </>
- );
-}
+  );
+};
 
-
+const FilterButtons = ({ showAll, freeAccess, feeBased }) => {
+  return (
+    <div className="flex justify-between items-center border border-gray-300">
+      <button  onClick={showAll}>Show all</button>
+      <button onClick={freeAccess}>Free access</button>
+      <button onClick={feeBased}>Fee based</button>
+    </div>
+  );
+};
 
 function App() {
   const [scData, setSCData] = useState([]);
-  const [filteredData, setFilteredData] = useState(scData);
+  const[filterCount, setFilterCount] = useState(0);
+  const [filteredData, setFilteredData] = useState(null);
+  
+  const showAll = () => {
+    setFilterCount(prevCount => prevCount + 1);
+    setFilteredData(scData);
+  };
+
+  const freeAccess = () => {
+    setFilteredData(scData.filter(ele => ele && ele.flags.private === false));
+  };
+
+  const feeBased = () => {
+    setFilteredData(scData.filter(ele => ele && ele.flags.private === true));
+  };
+
+  const RiskFilterButtons = ({ scData, setFilteredData }) => {
+    const handleFilter = (riskLabel) => {
+      setFilteredData(
+        scData.filter(
+          (ele) => ele && ele.stats.ratios.riskLabel === riskLabel
+        )
+      );
+    };
+  
+    return (
+      <div>
+        <button onClick={() => handleFilter("Low Volatility")}>Low</button>
+        <button onClick={() => handleFilter("Medium Volatility")}>Medium</button>
+        <button onClick={() => handleFilter("High Volatility")}>High</button>
+      </div>
+    );
+  };
+
+ 
+  const handleNewSmallCaseClick = () => {
+    setFilteredData(
+      scData.filter(
+        (ele) =>
+          ele && ele.info && ele.info.created &&
+          new Date(ele.info.created).getFullYear() > 2024
+      )
+    );
+  };
+
   useEffect(() => {
     const getData = async () => {
       try {
@@ -65,60 +98,55 @@ function App() {
 
   return (
     <>
-    <div className="drawer lg:drawer-open">
-  <input id="my-drawer-2" type="checkbox" className="drawer-toggle" />
-  <div className="drawer-content flex flex-col ">
-    {/* Page content here */}
-    <Card scData={filteredData} />
-  </div>
-  <div className="drawer-side">
-    <label htmlFor="my-drawer-2" aria-label="close sidebar" className="drawer-overlay"></label>
-    <div className="menu bg-base-200  min-h-full w-80 p-4">
-      {/* Sidebar content here */}
-      <div className="flex justify-between items-center border border-gray-300 p-4">
-      <button onClick={() => setFilteredData(scData)}>Show all</button> 
-      <button onClick={() => setFilteredData(scData.filter(ele => ele && ele.flags.private === false))}>Free access</button> 
-      <button onClick={() => setFilteredData(scData.filter(ele => ele && ele.flags.private === true))}>Fee based</button>
-      </div>
-      <div>
-      <div className="space-y-2">
-    <div className="form-control">
-    <label className="label cursor-pointer">
-      <input type="radio" name="amount" onClick={() => setFilteredData(scData)} className="radio checked:bg-blue-500" value="any" />
-      <span className="label-text ml-2">Any</span>
-    </label>
-    </div>
-  
-   <div className="form-control">
-    <label className="label cursor-pointer">
-      <input type="radio" name="amount" onClick={() => setFilteredData(scData.filter(ele => ele && ele.stats.minInvestAmount < 5000))} className="radio checked:bg-blue-500" value="5000" />
-      <span className="label-text ml-2">Under ₹ 5,000</span>
-    </label>
-    </div>
-  
-    <div className="form-control">
-    <label className="label cursor-pointer">
-      <input type="radio" name="amount" onClick={() => setFilteredData(scData.filter(ele => ele && ele.stats.minInvestAmount < 25000))} className="radio checked:bg-blue-500" value="25000" />
-      <span className="label-text ml-2">Under ₹ 25,000</span>
-    </label>
-    </div>
-  
-    <div className="form-control">
-    <label className="label cursor-pointer">
-      <input type="radio" name="amount" onClick={() => setFilteredData(scData.filter(ele => ele && ele.statsminInvestAmount < 50000))} className="radio checked:bg-blue-500" value="50000" />
-      <span className="label-text ml-2">Under ₹ 50,000</span>
-    </label>
-    </div>
-    </div>
-      </div>
-     <button onClick={() => setFilteredData(scData.filter(ele => ele && ele.stats.ratios.riskLabel < 50000))} >low</button>
-     <button onClick={() => setFilteredData(scData.filter(ele => ele && ele.stats.ratios.riskLabel < 50000))} >Medium</button>
-     <button onClick={() => setFilteredData(scData.filter(ele => ele && ele.stats.ratios.riskLabel < 50000))} >high</button>
-     </div>
-     </div>
-    </div>
+      <div className="drawer lg:drawer-open">
+        <input id="my-drawer-2" type="checkbox" className="drawer-toggle" />
+        <div className="drawer-content flex flex-col ">
+    
+          {filteredData === null ? (
+            <Card scData={scData} />
+          ) : (
+            <Card scData={filteredData} />
+          )}
+        </div>
+        <div className="drawer-side">
+          <label
+            htmlFor="my-drawer-2"
+            aria-label="close sidebar"
+            className="drawer-overlay"
+          ></label>
+          <div className="menu bg-base-200  min-h-full w-80 p-4">
+          
+            <p>filter {filterCount}</p>
+            <div>
+              <FilterButtons showAll={showAll}  freeAccess={freeAccess}  feeBased={feeBased} />
+             
+              <div>
+                {filteredData &&
+                  filteredData.map((data, index) => (
+                    <div key={index}>{data.name}</div> 
+                  ))}
+                <div></div>
+              </div>
+            </div>
+            <div>
+              <div className="space-y-2">
+                <div className="form-control">
+                  <RiskFilterButtons scData={scData} setFilteredData={setFilteredData} />
+                </div>
 
-      
+                <div>
+                  <AmountFilter label="All" maxAmount={1000} scData={scData} setFilteredData={setFilteredData}/>
+                  <AmountFilter label="Under ₹ 5,000" maxAmount={5000} scData={scData} setFilteredData={setFilteredData}/>
+                  <AmountFilter label="Under ₹ 25,000"maxAmount={25000} scData={scData} setFilteredData={setFilteredData} />
+                  <AmountFilter label="Under ₹ 50,000" maxAmount={50000} scData={scData} setFilteredData={setFilteredData} />
+                </div>
+              </div>
+              <input type="checkbox" onChange={handleNewSmallCaseClick} />
+              <label htmlFor="smallCaseCheckbox">Include new small cases</label>
+            </div>
+          </div>
+        </div>
+      </div>
     </>
   );
 }
