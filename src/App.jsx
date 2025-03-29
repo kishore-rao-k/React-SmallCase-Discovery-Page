@@ -1,157 +1,60 @@
 import { useState, useEffect } from "react";
 import Card from "./components/Card";
-
-const FilterSection = ({ title, children }) => (
-  <div className="mb-6">
-    <h3 className="font-semibold mb-2">{title}</h3>
-    {children}
-  </div>
-);
-
-const SubscriptionButtons = ({ activeFilter, setActiveFilter }) => {
-  const filters = [
-    { label: "Show all", value: "all" },
-    { label: "Free access", value: "free" },
-    { label: "Fee based", value: "fee" },
-  ];
-
-  return (
-    <FilterSection title="Subscription Type">
-      <div className="flex space-x-2">
-        {filters.map((filter) => (
-          <button
-            key={filter.value}
-            onClick={() => setActiveFilter(filter.value)}
-            className={`btn btn-sm ${activeFilter === filter.value ? 'btn-primary' : 'btn-outline'}`}
-          >
-            {filter.label}
-          </button>
-        ))}
-      </div>
-    </FilterSection>
-  );
-};
-
-const AmountFilter = ({ activeAmount, setActiveAmount }) => {
-  const amounts = [
-    { label: "All amounts", value: "all" },
-    { label: "Under ₹5,000", value: 5000 },
-    { label: "Under ₹25,000", value: 25000 },
-    { label: "Under ₹50,000", value: 50000 },
-  ];
-
-  return (
-    <FilterSection title="Investment Amount">
-      <div className="flex flex-col space-y-2">
-        {amounts.map((amount) => (
-          <label key={amount.value} className="flex items-center">
-            <input
-              type="radio"
-              name="amount"
-              checked={activeAmount === amount.value}
-              onChange={() => setActiveAmount(amount.value)}
-              className="radio radio-sm checked:bg-blue-500 mr-2"
-            />
-            <span>{amount.label}</span>
-          </label>
-        ))}
-      </div>
-    </FilterSection>
-  );
-};
-
-const VolatilityButtons = ({ activeVolatilities, setActiveVolatilities }) => {
-  const volatilities = [
-    { label: "Low", value: "Low Volatility" },
-    { label: "Medium", value: "Medium Volatility" },
-    { label: "High", value: "High Volatility" },
-  ];
-
-  const toggleVolatility = (value) => {
-    setActiveVolatilities((prev) =>
-      prev.includes(value)
-        ? prev.filter((v) => v !== value)
-        : [...prev, value]
-    );
-  };
-
-  return (
-    <FilterSection title="Volatility">
-      <div className="flex space-x-2">
-        {volatilities.map((volatility) => (
-          <button
-            key={volatility.value}
-            onClick={() => toggleVolatility(volatility.value)}
-            className={`btn btn-sm ${
-              activeVolatilities.includes(volatility.value)
-                ? 'btn-primary'
-                : 'btn-outline'
-            }`}
-          >
-            {volatility.label}
-          </button>
-        ))}
-      </div>
-    </FilterSection>
-  );
-};
-
-const StrategyFilter = ({ strategies, activeStrategies, setActiveStrategies }) => {
-  const handleChange = (value) => {
-    setActiveStrategies((prev) =>
-      prev.includes(value)
-        ? prev.filter((v) => v !== value)
-        : [...prev, value]
-    );
-  };
-
-  return (
-    <FilterSection title="Investment Strategy">
-      <div className="flex flex-col space-y-2">
-        {strategies.map((strategy) => (
-          <label key={strategy} className="flex items-center">
-            <input
-              type="checkbox"
-              checked={activeStrategies.includes(strategy)}
-              onChange={() => handleChange(strategy)}
-              className="checkbox checkbox-sm checked:bg-blue-500 mr-2"
-            />
-            <span>{strategy}</span>
-          </label>
-        ))}
-      </div>
-    </FilterSection>
-  );
-};
+import AmountFilter from "./components/leftContainer/AmountFilter";
+import LaunchDateFilter from "./components/leftContainer/LaunchDateFilter";
+import StrategyFilter from "./components/leftContainer/StrategyFilter";
+import SubscriptionButtons from "./components/leftContainer/SubscriptionButtons";
+import VolatilityButtons from "./components/leftContainer/VolatilityButtons";
+import DropDown from "./components/navBar/DropDown";
+import NavBar from "./components/navBar/NavBar";
 
 function App() {
   const [scData, setSCData] = useState([]);
-  const [filteredData, setFilteredData] = useState([]);
+  const [displayData, setDisplayData] = useState([]);
+  const [showNoResults, setShowNoResults] = useState(false);
+  const [filterCount, setFilterCount] = useState(0);
   const [subscriptionFilter, setSubscriptionFilter] = useState("all");
   const [amountFilter, setAmountFilter] = useState("all");
   const [volatilityFilters, setVolatilityFilters] = useState([]);
   const [strategyFilters, setStrategyFilters] = useState([]);
-  const [showNoResults, setShowNoResults] = useState(false);
   const [showRecentLaunches, setShowRecentLaunches] = useState(false);
+  const [selectedOption, setSelectedOption] = useState("Popularity");
+  const [selectedTimePeriod, setSelectedTimePeriod] = useState("");
+  const [selectedOrder, setSelectedOrder] = useState("High - Low");
+  const [open, setOpen] = useState(false);
+
   const strategies = [
     "Asset Allocation", "Corporate Governance", "Dividend", "ESG", "Factor Investing",
     "Fundamental", "Goal Based", "Growth", "Momentum", "Quality", "Quantamental",
     "Quantitative", "Sector Tracker", "Technical", "Thematic", "Value"
   ];
 
-  useEffect(() => {
-    if (scData.length === 0) return;
+  const calculateFilterCount = () => {
+    let count = 0;
+    if (subscriptionFilter !== 'all') count++;
+    if (amountFilter !== 'all') count++;
+    count += volatilityFilters.length;
+    count += strategyFilters.length;
+    if (showRecentLaunches) count++;
+    return count;
+  };
+  const clearAllFilters = () => {
+    setSubscriptionFilter("all");
+    setAmountFilter("all");
+    setVolatilityFilters([]);
+    setStrategyFilters([]);
+    setShowRecentLaunches(false);
+  };
 
-    const result = scData.filter((ele) => {
-  
+  const processData = () => {
+    if (scData.length === 0) return [];
+    let result = scData.filter((ele) => {
       if (subscriptionFilter === 'free' && ele?.flags?.private !== false) return false;
       if (subscriptionFilter === 'fee' && ele?.flags?.private !== true) return false;
-
 
       if (amountFilter !== 'all' && (!ele?.stats?.minInvestAmount || ele.stats.minInvestAmount > amountFilter)) {
         return false;
       }
-
 
       if (strategyFilters.length > 0) {
         const hasStrategy = ele?.info?.investmentStrategy?.some(
@@ -166,28 +69,85 @@ function App() {
       }
 
       if (showRecentLaunches) {
-        
         const createdDate = new Date(ele?.info?.created);
         if (!ele?.info?.created || isNaN(createdDate.getTime())) {
-          return false; 
+          return false;
         }
         
-        const oneYearAgo = new Date();
-        oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+        const fiveYearsAgo = new Date();
+        fiveYearsAgo.setFullYear(fiveYearsAgo.getFullYear() - 5);
         
-        if (createdDate < oneYearAgo) {
+        if (createdDate < fiveYearsAgo) {
           return false;
         }
       }
 
       return true;
     });
+    result = [...result].sort((a, b) => {
+      if (selectedOption === "Popularity") {
+        const rankA = a.brokerMeta?.flags?.popular?.rank || Infinity;
+        const rankB = b.brokerMeta?.flags?.popular?.rank || Infinity;
+        return rankA - rankB;
+      }
+      else if (selectedOption === "Minimum Amount") {
+        const amountA = a.stats?.minInvestAmount || Infinity;
+        const amountB = b.stats?.minInvestAmount || Infinity;
+        return amountA - amountB;
+      }
+      else if (selectedOption === "Recently Rebalanced") {
+        const dateA = new Date(a.info?.lastRebalanced || 0);
+        const dateB = new Date(b.info?.lastRebalanced || 0);
+        return dateB - dateA;
+      }
+      else if (selectedOption === "Returns" && selectedTimePeriod) {
+        const periodKeyMap = {
+          "1M": "monthly",
+          "6M": "halfyearly",
+          "1Y": "yearly",
+          "3Y": "threeYear",
+          "5Y": "fiveYear",
+        };
+        const returnsKey = periodKeyMap[selectedTimePeriod];
+        const returnsA = a.stats?.returns?.[returnsKey] || -Infinity;
+        const returnsB = b.stats?.returns?.[returnsKey] || -Infinity;
+        return selectedOrder === "High - Low" ? returnsB - returnsA : returnsA - returnsB;
+      }
+      return 0;
+    });
 
-    setFilteredData(result);
-    setShowNoResults(result.length === 0); 
-
-  }, [scData, amountFilter, strategyFilters, subscriptionFilter, volatilityFilters, showRecentLaunches]);
+    return result;
+  };
   
+  const getActiveReturnPeriod = () => {
+    if (selectedOption === "Returns") {
+      return {
+        "1M": { label: "1M Returns", key: "monthly" },
+        "6M": { label: "6M Returns", key: "halfyearly" },
+        "1Y": { label: "1Y CAGR", key: "yearly" },
+        "3Y": { label: "3Y CAGR", key: "threeYear" },
+        "5Y": { label: "5Y CAGR", key: "fiveYear" }
+      }[selectedTimePeriod];
+    }
+    return null;
+  };
+
+  useEffect(() => {
+    const processedData = processData();
+    setDisplayData(processedData);
+    setShowNoResults(processedData.length === 0);
+    setFilterCount(calculateFilterCount());
+  }, [
+    scData,
+    subscriptionFilter,
+    amountFilter,
+    strategyFilters,
+    volatilityFilters,
+    showRecentLaunches,
+    selectedOption,
+    selectedTimePeriod,
+    selectedOrder
+  ]);
 
   useEffect(() => {
     const getData = async () => {
@@ -203,27 +163,39 @@ function App() {
   }, []);
 
   return (
-    <div className="drawer lg:drawer-open">
-      <input id="my-drawer-2" type="checkbox" className="drawer-toggle" />
-      <div className="drawer-content flex flex-col">
-        {showNoResults ? (
-          <div className="flex flex-col items-center justify-center h-64">
-            <h3 className="text-xl font-semibold mb-2">No smallcases found</h3>
-            <p className="text-gray-500">
-              Try refining your search results or removing some filters
-            </p>
+    <>
+      <NavBar>
+        <div className="p-4">
+          <DropDown
+            selectedOption={selectedOption}
+            selectedTimePeriod={selectedTimePeriod}
+            selectedOrder={selectedOrder}
+            open={open}
+            onOptionChange={setSelectedOption}
+            onTimePeriodChange={setSelectedTimePeriod}
+            onOrderChange={setSelectedOrder}
+            onToggle={() => setOpen(!open)}
+          />
+        </div>
+      </NavBar>
+  
+      <div className="flex">
+        <div className="w-80 p-4  min-h-screen">
+          <div className="flex justify-between items-center mb-4 border-b pb-5 border-gray-300"> 
+            <div className="flex items-center"> 
+              <span className="text-sm font-medium text-gray-700 mr-2">Filters</span> 
+              <span className="bg-gray-200 rounded-md px-2 py-1 text-sm font-medium text-gray-800">
+                {filterCount}
+              </span> 
+            </div>
+            <button 
+              onClick={clearAllFilters}
+              className="text-sm font-medium text-blue-600"
+            >
+              Clear All
+            </button>
           </div>
-        ) : (
-          <Card scData={filteredData.length > 0 ? filteredData : scData} />
-        )}
-      </div>
-      
-     
-      <div className="drawer-side">
-        <label htmlFor="my-drawer-2" className="drawer-overlay"></label>
-        <div className="menu bg-base-200 min-h-full w-80 p-4">
-          <h2 className="text-xl font-bold mb-4">Filters</h2>
-          
+  
           <SubscriptionButtons 
             activeFilter={subscriptionFilter} 
             setActiveFilter={setSubscriptionFilter} 
@@ -238,27 +210,36 @@ function App() {
             activeVolatilities={volatilityFilters} 
             setActiveVolatilities={setVolatilityFilters} 
           />
-          <FilterSection title="Launch Date">
-  <label className="flex items-center">
-    <input
-      type="checkbox"
-      checked={showRecentLaunches}
-      onChange={() => setShowRecentLaunches(!showRecentLaunches)}
-      className="checkbox checkbox-sm checked:bg-blue-500 mr-2"
-    />
-    <span>Show recent launches (last 12 months)</span>
-  </label>
-</FilterSection>
+          
+          <LaunchDateFilter 
+            showRecentLaunches={showRecentLaunches}
+            setShowRecentLaunches={setShowRecentLaunches}
+          />
+          
           <StrategyFilter 
             strategies={strategies} 
             activeStrategies={strategyFilters} 
             setActiveStrategies={setStrategyFilters} 
           />
         </div>
+        <div className="flex-1 p-4">
+          {showNoResults ? (
+            <div className="flex flex-col items-center justify-center h-64">
+              <h3 className="text-xl font-semibold mb-2">No smallcases found</h3>
+              <p className="text-gray-500">
+                Try refining your search results or removing some filters
+              </p>
+            </div>
+          ) : (
+            <Card
+              scData={displayData.length > 0 ? displayData : scData}
+              activeReturnPeriod={getActiveReturnPeriod()}
+            />
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
-
-}
+}  
 
 export default App;
