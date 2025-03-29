@@ -14,7 +14,7 @@ const SubscriptionButtons = ({ activeFilter, setActiveFilter }) => {
           <button
             key={filter.value}
             onClick={() => setActiveFilter(filter.value)}
-            className={`flex-1 px-4 py-2  text-sm font-medium ${
+            className={`flex-1 px-6 py-2  text-sm font-medium ${
               activeFilter === filter.value
                 ? "bg-blue-100 text-blue-600"
                 : "text-gray-700 hover:bg-gray-200"
