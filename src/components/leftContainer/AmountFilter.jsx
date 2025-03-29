@@ -1,4 +1,4 @@
-import FilterSection from './FilterSection';
+import FilterSection from "./FilterSection";
 
 const AmountFilter = ({ activeAmount, setActiveAmount }) => {
   const amounts = [
@@ -9,7 +9,13 @@ const AmountFilter = ({ activeAmount, setActiveAmount }) => {
   ];
 
   return (
-    <FilterSection title={<span className="font-semibold text-[15px] text-gray-700">Investment Amount</span>}>
+    <FilterSection
+      title={
+        <span className="font-semibold text-[15px] text-gray-700">
+          Investment Amount
+        </span>
+      }
+    >
       <div className="flex flex-col space-y-3 mt-2">
         {amounts.map((amount) => (
           <label

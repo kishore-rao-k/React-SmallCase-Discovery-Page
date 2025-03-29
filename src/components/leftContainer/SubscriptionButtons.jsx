@@ -1,4 +1,4 @@
-import FilterSection from './FilterSection';
+import FilterSection from "./FilterSection";
 
 const SubscriptionButtons = ({ activeFilter, setActiveFilter }) => {
   const filters = [
@@ -9,15 +9,15 @@ const SubscriptionButtons = ({ activeFilter, setActiveFilter }) => {
 
   return (
     <FilterSection title="Subscription Type">
-      <div className="flex rounded-md border-1 border-gray-300"> 
+      <div className="flex rounded-md border-1 border-gray-300">
         {filters.map((filter) => (
           <button
             key={filter.value}
             onClick={() => setActiveFilter(filter.value)}
             className={`flex-1 px-4 py-2  text-sm font-medium ${
               activeFilter === filter.value
-                ? 'bg-blue-100 text-blue-600' 
-                : 'text-gray-700 hover:bg-gray-200' 
+                ? "bg-blue-100 text-blue-600"
+                : "text-gray-700 hover:bg-gray-200"
             }`}
           >
             {filter.label}

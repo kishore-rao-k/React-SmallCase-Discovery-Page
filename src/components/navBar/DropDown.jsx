@@ -10,24 +10,36 @@ const DropDown = ({
   onOrderChange,
   onToggle,
 }) => {
-  
   const options = [
-    { key: "Popularity", label: "Popularity", sortKey: "brokerMeta.flags.popular.rank" },
-    { key: "Minimum Amount", label: "Minimum Amount", sortKey: "stats.minInvestAmount" },
-    { key: "Recently Rebalanced", label: "Recently Rebalanced", sortKey: "info.lastRebalanced" },
+    {
+      key: "Popularity",
+      label: "Popularity",
+      sortKey: "brokerMeta.flags.popular.rank",
+    },
+    {
+      key: "Minimum Amount",
+      label: "Minimum Amount",
+      sortKey: "stats.minInvestAmount",
+    },
+    {
+      key: "Recently Rebalanced",
+      label: "Recently Rebalanced",
+      sortKey: "info.lastRebalanced",
+    },
   ];
   const periods = ["1M", "6M", "1Y", "3Y", "5Y"];
   const orders = ["High - Low", "Low - High"];
   const getSortLabel = () => {
     if (selectedOption === "Returns" && selectedTimePeriod) {
-      return `Sort by ${selectedTimePeriod} Returns (${selectedOrder === "High - Low" ? "H → L" : "L → H"})`;
+      return `Sort by ${selectedTimePeriod} Returns (${
+        selectedOrder === "High - Low" ? "H → L" : "L → H"
+      })`;
     }
     return `Sort by ${selectedOption}`;
   };
 
   return (
     <div className="relative inline-block text-left">
-     
       <button
         onClick={onToggle}
         className="px-2 text-sm text-gray-600 hover:text-black flex items-center space-x-1"
@@ -37,7 +49,6 @@ const DropDown = ({
       </button>
       {open && (
         <div className="absolute mt-2 w-64 rounded-lg border bg-white shadow-md p-4 space-y-4 z-50">
-     
           <div className="space-y-2">
             {options.map((option) => (
               <div
@@ -48,11 +59,19 @@ const DropDown = ({
                   onTimePeriodChange("");
                 }}
               >
-                <span className={`${selectedOption === option.key ? "text-blue-600 font-medium" : ""}`}>
+                <span
+                  className={`${
+                    selectedOption === option.key
+                      ? "text-blue-600 font-medium"
+                      : ""
+                  }`}
+                >
                   {option.label}
                 </span>
                 <span className="w-4 h-4 border rounded-full flex items-center justify-center">
-                  {selectedOption === option.key && <div className="w-2 h-2 bg-blue-600 rounded-full" />}
+                  {selectedOption === option.key && (
+                    <div className="w-2 h-2 bg-blue-600 rounded-full" />
+                  )}
                 </span>
               </div>
             ))}
