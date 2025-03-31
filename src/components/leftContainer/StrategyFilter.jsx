@@ -28,9 +28,7 @@ const StrategyFilter = ({
             <input
               type="checkbox"
               checked={activeStrategies.includes(strategy)}
-              onChange={() => handleChange(strategy)}
-              className="w-4 h-4 appearance-none border border-gray-300 rounded-sm checked:bg-blue-600 checked:border-blue-600 checked:text-white flex items-center justify-center"
-            />
+              onChange={() => handleChange(strategy)}/>
             <span>{strategy}</span>
           </label>
         ))}

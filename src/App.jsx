@@ -10,9 +10,6 @@ import NavBar from "./components/navBar/NavBar";
 
 function App() {
   const [scData, setSCData] = useState([]);
-  const [displayData, setDisplayData] = useState([]);
-  const [showNoResults, setShowNoResults] = useState(false);
-  const [filterCount, setFilterCount] = useState(0);
   const [subscriptionFilter, setSubscriptionFilter] = useState("all");
   const [amountFilter, setAmountFilter] = useState("all");
   const [volatilityFilters, setVolatilityFilters] = useState([]);
@@ -22,6 +19,8 @@ function App() {
   const [selectedTimePeriod, setSelectedTimePeriod] = useState("");
   const [selectedOrder, setSelectedOrder] = useState("High - Low");
   const [open, setOpen] = useState(false);
+  const [error, setError] = useState(null);
+  
 
   const strategies = [
     "Asset Allocation",
@@ -51,6 +50,7 @@ function App() {
     if (showRecentLaunches) count++;
     return count;
   };
+
   const clearAllFilters = () => {
     setSubscriptionFilter("all");
     setAmountFilter("all");
@@ -139,6 +139,10 @@ function App() {
     return result;
   };
 
+  const displayData = processData();
+  const showNoResults = displayData.length === 0;
+  const filterCount = calculateFilterCount();
+
   const getActiveReturnPeriod = () => {
     if (selectedOption === "Returns") {
       return {
@@ -153,30 +157,13 @@ function App() {
   };
 
   useEffect(() => {
-    const processedData = processData();
-    setDisplayData(processedData);
-    setShowNoResults(processedData.length === 0);
-    setFilterCount(calculateFilterCount());
-  }, [
-    scData,
-    subscriptionFilter,
-    amountFilter,
-    strategyFilters,
-    volatilityFilters,
-    showRecentLaunches,
-    selectedOption,
-    selectedTimePeriod,
-    selectedOrder,
-  ]);
-
-  useEffect(() => {
     const getData = async () => {
       try {
         const response = await fetch("/smallcases.json");
         const datas = await response.json();
         setSCData(datas.data);
       } catch (error) {
-        console.error("Error fetching data", error);
+        setError("Error fetching data", error);
       }
     };
     getData();
@@ -245,8 +232,8 @@ function App() {
               setActiveStrategies={setStrategyFilters}
             />
           </div>
-          <div className="flex-1 p-4">
-            {showNoResults ? (
+          <div className="flex-1 p-4 w-[940px]">
+            {showNoResults ?  error? <p>{error}</p> :(
               <div className="flex flex-col items-center justify-center h-64">
                 <h3 className="text-xl font-semibold mb-2">
                   No smallcases found
