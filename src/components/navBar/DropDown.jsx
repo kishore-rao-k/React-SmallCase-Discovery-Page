@@ -48,7 +48,7 @@ const DropDown = ({
         <span>{open ? "▲" : "▼"}</span>
       </button>
       {open && (
-        <div className="absolute mt-2 w-64 rounded-lg border bg-white shadow-md p-4 space-y-4 z-50">
+        <div className="absolute mt-2 w-64 rounded-lg border border-gray-200 bg-white shadow-md p-4 space-y-4 z-50">
           <div className="space-y-2">
             {options.map((option) => (
               <div
@@ -79,7 +79,7 @@ const DropDown = ({
           <div className="text-gray-600 font-medium pt-2">Returns</div>
 
           <div className="text-xs text-gray-400 mb-1">Time period</div>
-          <div className="flex flex-wrap gap-2 border rounded p-1">
+          <div className="flex flex-wrap gap-2 border border-gray-200 rounded p-1">
             {periods.map((period) => (
               <button
                 key={period}
@@ -100,7 +100,7 @@ const DropDown = ({
           {selectedTimePeriod && (
             <div>
               <div className="text-xs text-gray-400 mb-1 mt-2">Order by</div>
-              <div className="flex border rounded overflow-hidden">
+              <div className="flex border border-gray-200 rounded overflow-hidden">
                 {orders.map((order) => (
                   <button
                     key={order}

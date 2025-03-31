@@ -33,8 +33,7 @@ const Card = ({ scData, activeReturnPeriod }) => {
                         transition-all duration-300 ease-in-out
                         hover:border-l hover:border-r hover:border-gray-300 hover:rounded-l-lg hover:rounded-r-lg
                         hover:shadow-sm hover:shadow-gray-100
-                        focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 group"
-          >
+                        focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 group">
             <div className="w-16 h-16">
               <img
                 src={`https://assets.smallcase.com/images/smallcases/160/${item.scid}.png`}
@@ -43,9 +42,11 @@ const Card = ({ scData, activeReturnPeriod }) => {
               />
             </div>
 
-            <div className="flex flex-col flex-1 px-4">
+            <div className="flex flex-col flex-1 px-4 w-[370px]">
               <div className="flex items-center gap-2">
-                <h2 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors duration-200">
+                <h2
+                  className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors duration-200
+               truncate ...">
                   {item.info.name}
                 </h2>
 
