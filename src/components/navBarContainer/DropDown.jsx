@@ -14,17 +14,14 @@ const DropDown = ({
     {
       key: "Popularity",
       label: "Popularity",
-      sortKey: "brokerMeta.flags.popular.rank",
     },
     {
       key: "Minimum Amount",
       label: "Minimum Amount",
-      sortKey: "stats.minInvestAmount",
     },
     {
       key: "Recently Rebalanced",
       label: "Recently Rebalanced",
-      sortKey: "info.lastRebalanced",
     },
   ];
   const periods = ["1M", "6M", "1Y", "3Y", "5Y"];

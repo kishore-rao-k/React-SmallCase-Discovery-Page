@@ -20,7 +20,7 @@ const StrategyFilter = ({
       }
     >
       <div className="flex flex-col space-y-3 mt-2">
-        {strategies.map((strategy) => (
+        {[...strategies].map((strategy) => (
           <label
             key={strategy}
             className="flex items-center space-x-2 text-[14px] text-gray-800"

@@ -10,7 +10,7 @@ function NavBar({ children }) {
           <button className="text-blue-600">All smallcases</button>
           <button className="hover:text-black">Managers</button>
         </div>
-        <div className="flex items-center space-x-6">
+        <div className="flex items-center space-x-6 p-4">
           {children}
           <div className="flex items-center border border-gray-300 rounded-md px-2 py-1">
             <img src="/search.svg" alt="search" className="w-4 h-4 mr-2" />

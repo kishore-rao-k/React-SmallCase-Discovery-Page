@@ -1,6 +1,6 @@
 import React from "react";
 
-const Card = ({ scData, activeReturnPeriod }) => {
+const Card = ({ displayData, activeReturnPeriod }) => {
   const riskIcons = {
     "Low Volatility": "/1.png",
     "Medium Volatility": "/2.png",
@@ -14,14 +14,16 @@ const Card = ({ scData, activeReturnPeriod }) => {
 
   return (
     <>
-      {scData.map((item) => {
-        const currentReturnValue = activeReturnPeriod
-          ? item.stats.returns?.[activeReturnPeriod.key]
-          : item.stats.ratios?.cagr;
+      {displayData.map((item) => {
+        let currentReturnValue;
+        if (activeReturnPeriod) {
+          currentReturnValue = item.stats.returns?.[activeReturnPeriod.key];
+        } else {
+          currentReturnValue = item.stats.ratios.cagr;
+        }
 
         const returnColor = getReturnColor(currentReturnValue);
-        const rawRiskLabel =
-          item.stats.ratios?.riskLabel || "Medium Volatility";
+        const rawRiskLabel = item.stats.ratios.riskLabel;
         const riskLabel =
           rawRiskLabel === "Medium Volatility" ? "Med. Volatile" : rawRiskLabel;
         const riskIcon = getRiskIcon(riskLabel);
@@ -33,7 +35,8 @@ const Card = ({ scData, activeReturnPeriod }) => {
                         transition-all duration-300 ease-in-out
                         hover:border-l hover:border-r hover:border-gray-300 hover:rounded-l-lg hover:rounded-r-lg
                         hover:shadow-sm hover:shadow-gray-100
-                        focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 group">
+                        focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 group"
+          >
             <div className="w-16 h-16">
               <img
                 src={`https://assets.smallcase.com/images/smallcases/160/${item.scid}.png`}
@@ -44,9 +47,7 @@ const Card = ({ scData, activeReturnPeriod }) => {
 
             <div className="flex flex-col flex-1 px-4 w-[370px]">
               <div className="flex items-center gap-2">
-                <h2
-                  className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors duration-200
-               truncate ...">
+                <h2 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors duration-200 truncate ...">
                   {item.info.name}
                 </h2>
 
@@ -80,17 +81,17 @@ const Card = ({ scData, activeReturnPeriod }) => {
                       {activeReturnPeriod.label}
                     </p>
                     <p className={`text-md font-semibold ${returnColor}`}>
-                      {(currentReturnValue * 100)?.toFixed(2) || "0.00"}%
+                      {(currentReturnValue * 100).toFixed(2) || "0.00"}%
                     </p>
                   </>
                 ) : (
-                  item.stats.ratios?.cagr && (
+                  item.stats.ratios.cagr && (
                     <>
                       <p className="text-sm text-gray-500">
                         {item.stats.ratios.cagrDuration || "Overall"} CAGR
                       </p>
                       <p className={`text-md font-semibold ${returnColor}`}>
-                        {(currentReturnValue * 100)?.toFixed(2) || "0.00"}%
+                        {(currentReturnValue * 100).toFixed(2) || "0.00"}%
                       </p>
                     </>
                   )

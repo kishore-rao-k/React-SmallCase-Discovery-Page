@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
-import Card from "./components/Card";
+import Card from "./components/rightContainer/Card";
 import AmountFilter from "./components/leftContainer/AmountFilter";
 import LaunchDateFilter from "./components/leftContainer/LaunchDateFilter";
 import StrategyFilter from "./components/leftContainer/StrategyFilter";
 import SubscriptionButtons from "./components/leftContainer/SubscriptionButtons";
 import VolatilityButtons from "./components/leftContainer/VolatilityButtons";
-import DropDown from "./components/navBar/DropDown";
-import NavBar from "./components/navBar/NavBar";
+import DropDown from "./components/navBarContainer/DropDown";
+import NavBar from "./components/navBarContainer/NavBar";
+import NotFound from "./components/rightContainer/NotFound";
+import FilterHead from "./components/leftContainer/FilterHead";
 
 function App() {
   const [scData, setSCData] = useState([]);
@@ -21,36 +23,34 @@ function App() {
   const [open, setOpen] = useState(false);
   const [error, setError] = useState(null);
 
-  const strategies = [
-    "Asset Allocation",
-    "Corporate Governance",
-    "Dividend",
-    "ESG",
-    "Factor Investing",
-    "Fundamental",
-    "Goal Based",
-    "Growth",
-    "Momentum",
-    "Quality",
-    "Quantamental",
-    "Quantitative",
-    "Sector Tracker",
-    "Technical",
-    "Thematic",
-    "Value",
-  ];
+  const strategies = function () {
+    return scData.reduce((result, curr) => {
+      const inv = curr.info.investmentStrategy;
+      for (let s of inv) {
+        result.add(s.displayName);
+      }
 
-  const calculateFilterCount = () => {
+      return result;
+    }, new Set());
+  };
+
+  const calculateFilterCount = function () {
     let count = 0;
-    if (subscriptionFilter !== "all") count++;
-    if (amountFilter !== "all") count++;
+    if (subscriptionFilter !== "all") {
+      count++;
+    }
+    if (amountFilter !== "all") {
+      count++;
+    }
     count += volatilityFilters.length;
     count += strategyFilters.length;
-    if (showRecentLaunches) count++;
+    if (showRecentLaunches) {
+      count++;
+    }
     return count;
   };
 
-  const clearAllFilters = () => {
+  const clearAllFilters = function () {
     setSubscriptionFilter("all");
     setAmountFilter("all");
     setVolatilityFilters([]);
@@ -58,45 +58,49 @@ function App() {
     setShowRecentLaunches(false);
   };
 
-  const processData = () => {
-    if (scData.length === 0) return [];
+  const processData = function () {
+    if (scData.length === 0) {
+      return [];
+    }
 
     let filteredData = scData.filter((item) => {
-      if (subscriptionFilter === "free" && item?.flags?.private === true) {
+      if (subscriptionFilter === "free" && item.flags.private !== false) {
         return false;
       }
-      if (subscriptionFilter === "fee" && item?.flags?.private === false) {
+      if (subscriptionFilter === "fee" && item.flags.private !== true) {
         return false;
       }
 
       if (amountFilter !== "all") {
-        const minAmount = item?.stats?.minInvestAmount;
+        const minAmount = item.stats.minInvestAmount;
         if (!minAmount || minAmount > amountFilter) {
           return false;
         }
       }
 
       if (strategyFilters.length > 0) {
-        const strategies = item?.info?.investmentStrategy || [];
+        const strategies = item.info.investmentStrategy;
         const hasMatchingStrategy = strategies.some((strategy) =>
           strategyFilters.includes(strategy.displayName)
         );
-        if (!hasMatchingStrategy) return false;
+        if (!hasMatchingStrategy) {
+          return false;
+        }
       }
 
       if (volatilityFilters.length > 0) {
-        const riskLevel = item?.stats?.ratios?.riskLabel;
+        const riskLevel = item.stats.ratios.riskLabel;
         if (!volatilityFilters.includes(riskLevel)) {
           return false;
         }
       }
 
       if (showRecentLaunches) {
-        const createdDate = new Date(item?.info?.created);
+        const createdDate = new Date(item.info.created);
         const fiveYearsAgo = new Date();
         fiveYearsAgo.setFullYear(fiveYearsAgo.getFullYear() - 5);
 
-        if (!item?.info?.created || createdDate < fiveYearsAgo) {
+        if (!item.info.created || createdDate < fiveYearsAgo) {
           return false;
         }
       }
@@ -106,16 +110,16 @@ function App() {
 
     let sortedData = filteredData.sort((a, b) => {
       if (selectedOption === "Popularity") {
-        const rankA = a.brokerMeta?.flags?.popular?.rank;
-        const rankB = b.brokerMeta?.flags?.popular?.rank;
+        const rankA = a.brokerMeta.flags.popular.rank;
+        const rankB = b.brokerMeta.flags.popular.rank;
         return rankA - rankB;
       } else if (selectedOption === "Minimum Amount") {
-        const amountA = a.stats?.minInvestAmount;
-        const amountB = b.stats?.minInvestAmount;
+        const amountA = a.stats.minInvestAmount;
+        const amountB = b.stats.minInvestAmount;
         return amountA - amountB;
       } else if (selectedOption === "Recently Rebalanced") {
-        const dateA = new Date(a.info?.lastRebalanced);
-        const dateB = new Date(b.info?.lastRebalanced);
+        const dateA = new Date(a.info.lastRebalanced);
+        const dateB = new Date(b.info.lastRebalanced);
         return dateB - dateA;
       } else if (selectedOption === "Returns" && selectedTimePeriod) {
         const periodKeys = {
@@ -127,12 +131,14 @@ function App() {
         };
 
         const key = periodKeys[selectedTimePeriod];
-        const returnsA = a.stats?.returns?.[key];
-        const returnsB = b.stats?.returns?.[key];
+        const returnsA = a.stats.returns?.[key];
+        const returnsB = b.stats.returns?.[key];
 
-        return selectedOrder === "High - Low"
-          ? returnsB - returnsA
-          : returnsA - returnsB;
+        if (selectedOrder === "High - Low") {
+          return returnsB - returnsA;
+        } else {
+          return returnsA - returnsB;
+        }
       }
 
       return 0;
@@ -177,38 +183,24 @@ function App() {
     <>
       <div className="flex flex-col  items-center ">
         <NavBar>
-          <div className="p-4">
-            <DropDown
-              selectedOption={selectedOption}
-              selectedTimePeriod={selectedTimePeriod}
-              selectedOrder={selectedOrder}
-              open={open}
-              onOptionChange={setSelectedOption}
-              onTimePeriodChange={setSelectedTimePeriod}
-              onOrderChange={setSelectedOrder}
-              onToggle={() => setOpen(!open)}
-            />
-          </div>
+          <DropDown
+            selectedOption={selectedOption}
+            selectedTimePeriod={selectedTimePeriod}
+            selectedOrder={selectedOrder}
+            open={open}
+            onOptionChange={setSelectedOption}
+            onTimePeriodChange={setSelectedTimePeriod}
+            onOrderChange={setSelectedOrder}
+            onToggle={() => setOpen((prevOpen) => !prevOpen)}
+          />
         </NavBar>
 
         <div className="flex  justify-center mx-auto">
           <div className="w-80 p-4  min-h-screen">
-            <div className="flex justify-between items-center mb-4 border-b pb-5 border-gray-300">
-              <div className="flex items-center">
-                <span className="text-sm font-medium text-gray-700 mr-2">
-                  Filters
-                </span>
-                <span className="bg-gray-200 rounded-md px-2 py-1 text-sm font-medium text-gray-800">
-                  {filterCount}
-                </span>
-              </div>
-              <button
-                onClick={clearAllFilters}
-                className="text-sm font-medium text-blue-600"
-              >
-                Clear All
-              </button>
-            </div>
+            <FilterHead
+              filterCount={filterCount}
+              clearAllFilters={clearAllFilters}
+            />
 
             <SubscriptionButtons
               activeFilter={subscriptionFilter}
@@ -231,7 +223,7 @@ function App() {
             />
 
             <StrategyFilter
-              strategies={strategies}
+              strategies={strategies()}
               activeStrategies={strategyFilters}
               setActiveStrategies={setStrategyFilters}
             />
@@ -241,18 +233,11 @@ function App() {
               error ? (
                 <p>{error}</p>
               ) : (
-                <div className="flex flex-col items-center justify-center h-64">
-                  <h3 className="text-xl font-semibold mb-2">
-                    No smallcases found
-                  </h3>
-                  <p className="text-gray-500">
-                    Try refining your search results or removing some filters
-                  </p>
-                </div>
+                <NotFound />
               )
             ) : (
               <Card
-                scData={displayData}
+                displayData={displayData}
                 activeReturnPeriod={getActiveReturnPeriod()}
               />
             )}
