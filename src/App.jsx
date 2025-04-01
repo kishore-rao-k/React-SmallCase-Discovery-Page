@@ -20,7 +20,6 @@ function App() {
   const [selectedOrder, setSelectedOrder] = useState("High - Low");
   const [open, setOpen] = useState(false);
   const [error, setError] = useState(null);
-  
 
   const strategies = [
     "Asset Allocation",
@@ -143,18 +142,20 @@ function App() {
   const showNoResults = displayData.length === 0;
   const filterCount = calculateFilterCount();
 
-  const getActiveReturnPeriod = () => {
-    if (selectedOption === "Returns") {
-      return {
-        "1M": { label: "1M Returns", key: "monthly" },
-        "6M": { label: "6M Returns", key: "halfyearly" },
-        "1Y": { label: "1Y CAGR", key: "yearly" },
-        "3Y": { label: "3Y CAGR", key: "threeYear" },
-        "5Y": { label: "5Y CAGR", key: "fiveYear" },
-      }[selectedTimePeriod];
+  function getActiveReturnPeriod() {
+    if (selectedOption !== "Returns") {
+      return null;
     }
-    return null;
-  };
+
+    const returnPeriods = {
+      "1M": { label: "1M Returns", key: "monthly" },
+      "6M": { label: "6M Returns", key: "halfyearly" },
+      "1Y": { label: "1Y CAGR", key: "yearly" },
+      "3Y": { label: "3Y CAGR", key: "threeYear" },
+      "5Y": { label: "5Y CAGR", key: "fiveYear" },
+    };
+    return returnPeriods[selectedTimePeriod];
+  }
 
   useEffect(() => {
     const getData = async () => {
@@ -233,18 +234,22 @@ function App() {
             />
           </div>
           <div className="flex-1 p-4 w-[940px]">
-            {showNoResults ?  error? <p>{error}</p> :(
-              <div className="flex flex-col items-center justify-center h-64">
-                <h3 className="text-xl font-semibold mb-2">
-                  No smallcases found
-                </h3>
-                <p className="text-gray-500">
-                  Try refining your search results or removing some filters
-                </p>
-              </div>
+            {showNoResults ? (
+              error ? (
+                <p>{error}</p>
+              ) : (
+                <div className="flex flex-col items-center justify-center h-64">
+                  <h3 className="text-xl font-semibold mb-2">
+                    No smallcases found
+                  </h3>
+                  <p className="text-gray-500">
+                    Try refining your search results or removing some filters
+                  </p>
+                </div>
+              )
             ) : (
               <Card
-                scData={displayData.length > 0 ? displayData : scData}
+                scData={displayData}
                 activeReturnPeriod={getActiveReturnPeriod()}
               />
             )}
