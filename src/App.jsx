@@ -60,82 +60,85 @@ function App() {
 
   const processData = () => {
     if (scData.length === 0) return [];
-    let result = scData.filter((ele) => {
-      if (subscriptionFilter === "free" && ele?.flags?.private !== false)
-        return false;
-      if (subscriptionFilter === "fee" && ele?.flags?.private !== true)
-        return false;
 
-      if (
-        amountFilter !== "all" &&
-        (!ele?.stats?.minInvestAmount ||
-          ele.stats.minInvestAmount > amountFilter)
-      ) {
+    let filteredData = scData.filter((item) => {
+      if (subscriptionFilter === "free" && item?.flags?.private === true) {
         return false;
+      }
+      if (subscriptionFilter === "fee" && item?.flags?.private === false) {
+        return false;
+      }
+
+      if (amountFilter !== "all") {
+        const minAmount = item?.stats?.minInvestAmount;
+        if (!minAmount || minAmount > amountFilter) {
+          return false;
+        }
       }
 
       if (strategyFilters.length > 0) {
-        const hasStrategy = ele?.info?.investmentStrategy?.some((strategy) =>
+        const strategies = item?.info?.investmentStrategy || [];
+        const hasMatchingStrategy = strategies.some((strategy) =>
           strategyFilters.includes(strategy.displayName)
         );
-        if (!hasStrategy) return false;
+        if (!hasMatchingStrategy) return false;
       }
 
-      if (
-        volatilityFilters.length > 0 &&
-        !volatilityFilters.includes(ele?.stats?.ratios?.riskLabel)
-      ) {
-        return false;
+      if (volatilityFilters.length > 0) {
+        const riskLevel = item?.stats?.ratios?.riskLabel;
+        if (!volatilityFilters.includes(riskLevel)) {
+          return false;
+        }
       }
 
       if (showRecentLaunches) {
-        const createdDate = new Date(ele?.info?.created);
-        if (!ele?.info?.created || isNaN(createdDate.getTime())) {
-          return false;
-        }
-
+        const createdDate = new Date(item?.info?.created);
         const fiveYearsAgo = new Date();
         fiveYearsAgo.setFullYear(fiveYearsAgo.getFullYear() - 5);
 
-        if (createdDate < fiveYearsAgo) {
+        if (!item?.info?.created || createdDate < fiveYearsAgo) {
           return false;
         }
       }
 
       return true;
     });
-    result = [...result].sort((a, b) => {
+
+    let sortedData = filteredData.sort((a, b) => {
       if (selectedOption === "Popularity") {
-        const rankA = a.brokerMeta?.flags?.popular?.rank || Infinity;
-        const rankB = b.brokerMeta?.flags?.popular?.rank || Infinity;
+        const rankA = a.brokerMeta?.flags?.popular?.rank;
+        const rankB = b.brokerMeta?.flags?.popular?.rank;
         return rankA - rankB;
       } else if (selectedOption === "Minimum Amount") {
-        const amountA = a.stats?.minInvestAmount || Infinity;
-        const amountB = b.stats?.minInvestAmount || Infinity;
+        const amountA = a.stats?.minInvestAmount;
+        const amountB = b.stats?.minInvestAmount;
         return amountA - amountB;
       } else if (selectedOption === "Recently Rebalanced") {
-        const dateA = new Date(a.info?.lastRebalanced || 0);
-        const dateB = new Date(b.info?.lastRebalanced || 0);
+        const dateA = new Date(a.info?.lastRebalanced);
+        const dateB = new Date(b.info?.lastRebalanced);
         return dateB - dateA;
       } else if (selectedOption === "Returns" && selectedTimePeriod) {
-        const periodKeyMap = {
+        const periodKeys = {
           "1M": "monthly",
           "6M": "halfyearly",
           "1Y": "yearly",
           "3Y": "threeYear",
           "5Y": "fiveYear",
         };
-        const returnsKey = periodKeyMap[selectedTimePeriod];
-        const returnsA = a.stats?.returns?.[returnsKey] || -Infinity;
-        const returnsB = b.stats?.returns?.[returnsKey] || -Infinity;
+
+        const key = periodKeys[selectedTimePeriod];
+        const returnsA = a.stats?.returns?.[key];
+        const returnsB = b.stats?.returns?.[key];
+
         return selectedOrder === "High - Low"
           ? returnsB - returnsA
           : returnsA - returnsB;
       }
+
       return 0;
     });
 
-    return result;
+    return sortedData;
   };
 
   const displayData = processData();
